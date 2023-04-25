@@ -41,7 +41,8 @@ void setup() {
   pinMode(blue_LED, OUTPUT);
   pinMode(green_LED, OUTPUT);
   pinMode(button, INPUT_PULLUP);
-  pinMode(clockwiseButton, INPUT_PULLUP);
+  pinMode(endButton, INPUT_PULLUP);
+  //pinMode(clockwiseButton, INPUT_PULLUP);
   stepper.setMaxSpeed(1000);
   stepper.setSpeed(flowRate * 3 / 8);
   // 3/8 was calculated by 1 minute/60 seconds * 180 steps/8 millimeters 
@@ -50,24 +51,33 @@ void setup() {
 
 void loop() {
 
-  if(digitalRead(clockwiseButton) == LOW){ //not 100% working yet
-    analogWrite(blue_LED, 255);
-    analogWrite(green_LED, 0);
-    analogWrite(red_LED, 0);
-    stepper.runSpeed();
-    Serial.println("clockwise");
+  // if(digitalRead(clockwiseButton) == LOW){ //not 100% working yet
+  //   analogWrite(blue_LED, 255);
+  //   analogWrite(green_LED, 0);
+  //   analogWrite(red_LED, 0);
+  //   stepper.runSpeed();
+  //   Serial.println("clockwise");
+  // }
+  
+  if(digitalRead(endButton) == LOW){ // you have reached the end
+    analogWrite(green_LED, 255);
+    analogWrite(red_LED, 127);
+    analogWrite(blue_LED, 0);
   }
-  if(digitalRead(button) == LOW){
+  else {
+    if(digitalRead(button) == LOW){ // you are not at the end sensor
     analogWrite(green_LED, 255);
     analogWrite(red_LED, 0);
     analogWrite(blue_LED, 0);
     stepper.runSpeed(); // you should step now
     Serial.println("main button");
+    }
+    else { // pause because you are not at the end yet
+      analogWrite(red_LED, 255);
+      analogWrite(green_LED, 127);
+      analogWrite(blue_LED, 0);
+    }
   }
-  else { // pause because you are not at the end yet
-    analogWrite(red_LED, 255);
-    analogWrite(green_LED, 255);
-    analogWrite(blue_LED, 0);
-  }
+  
   
 }
