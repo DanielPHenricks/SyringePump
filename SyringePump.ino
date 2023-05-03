@@ -1,16 +1,18 @@
-#include <AccelStepper.h>
-#include <LiquidCrystal.h>// include the library code
+// This code is written by Team Concoction, Spring 2023. 
 
-LiquidCrystal lcd(1, 4, 6, 7, 12, 13);
-float syringeSize = 5.0; // the capacity of the syringe, in mL.
+#include <AccelStepper.h>
+#include <LiquidCrystal.h>
+// include the library code
+
+LiquidCrystal lcd(1, 4, 6, 7, 12, 13); // these are the 6 pins being used
+float syringeSize = 10.0; // the capacity of the syringe, in mL.
 
 AccelStepper stepper(AccelStepper::DRIVER, 3, 2);
 // pin 3 is the step input, pin 2 is the direction input
 
-float flowRate = (6 * 10)/3;
+float flowRate = 6;
 // the current flow rate of the pump
 
-// adjust for microstepping
 int red_LED = 11;
 int blue_LED = 9;
 int green_LED = 10;
@@ -25,20 +27,26 @@ int endButton = 8;
 bool isPaused = false;
 unsigned long startPause = 0;
 unsigned long elapsedPause = 0;
+// use an unsigned long to avoid overflow errors for a 32-bit int
+
 void setup() {
   pinMode(red_LED, OUTPUT);
   pinMode(blue_LED, OUTPUT);
   pinMode(green_LED, OUTPUT);
   pinMode(button, INPUT_PULLUP);
   pinMode(endButton, INPUT_PULLUP);
+  // enabling these pins as pullup resistors
   stepper.setMaxSpeed(1000);
-  stepper.setSpeed(flowRate * 50 / 3);
+  stepper.setSpeed(flowRate * 1000 / 60 * 10/3);
   lcd.begin(20, 4);
+  // this initiates the LCD to have 20 cols and 4 rows
 }
 
 void loop() {
-  int timeRemaining = ceil(syringeSize*60/flowRate*6.7 - millis()/1000 + elapsedPause/1000);
+  int timeRemaining = ceil(syringeSize/flowRate * 60 - millis()/1000 + elapsedPause/1000);
+  // better to overestimate than underestimate, so use ceil
     timeRemaining = max(timeRemaining, 0);
+    // no such thing as negative time
     lcd.setCursor(0,0);  
     lcd.print("**Team Concoction**");
 
@@ -55,18 +63,18 @@ void loop() {
     if(!isPaused){
       lcd.setCursor(0,3);
       if(timeRemaining >= 100){
-
+          // do nothing
       }
       else if (timeRemaining >= 10){
-        lcd.print(" ");
+        lcd.print(" "); // prevent LCD overflow
       }
       else {
-        lcd.print("  ");
+        lcd.print("  "); // prevent LCD overflow
       }
       lcd.print(timeRemaining);
     }
     else {
-      int currTime = ceil(syringeSize*60/flowRate*6.7 - startPause/1000 + elapsedPause/1000);
+      int currTime = ceil(syringeSize*60/flowRate- startPause/1000 + elapsedPause/1000);
       lcd.setCursor(0,3);
       if(currTime >= 100){
 
